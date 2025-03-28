@@ -8,9 +8,45 @@ use App\Models\Student;
 class StudentController extends Controller
 {
     // Display a list of students
-    public function index()
+    public function index(Request $request)
     {
-        $students = Student::all(); // Later: add filtering logic
+        $query = $request->input('searchName');
+        $minAge = $request->input('minAge');
+        $maxAge = $request->input('maxAge');
+
+        // dd($query);
+
+        $students = Student::query(); 
+
+        if ($query) {
+            $students->where('name', 'LIKE', "%{$query}%");
+        }
+    
+        if ($minAge) {
+            $students->where('age', '>=', $minAge);
+        }
+    
+        if ($maxAge) {
+            $students->where('age', '<=', $maxAge);
+        }
+    
+        $students = $students->get();
+    
+        if ($request->ajax()) {
+            $output = '';
+    
+            foreach ($students as $student) {
+                $output .= '
+                <tr>
+                    <td>' . $student->id . '</td>
+                    <td>' . $student->name . '</td>
+                    <td>' . $student->age . '</td>
+                </tr>';
+            }
+    
+            return response($output);
+        }
+    
         return view('index', compact('students'));
     }
 
